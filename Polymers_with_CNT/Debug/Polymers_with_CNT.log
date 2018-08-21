@@ -1,0 +1,10 @@
+﻿  main.cpp
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(116): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(117): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(238): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(284): warning C4244: инициализация: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(285): warning C4244: return: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(321): warning C4244: return: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(411): warning C4244: =: преобразование "double" в "int", возможна потеря данных
+c:\users\марина\onedrive\3 курс\polymers_with_cnt_1\polymers_with_cnt\main.cpp(378): warning C4715: summ_weight: значение возвращается не при всех путях выполнения
+  Polymers_with_CNT.vcxproj -> C:\Users\Марина\OneDrive\3 курс\Polymers_with_CNT_1\Debug\Polymers_with_CNT.exe
