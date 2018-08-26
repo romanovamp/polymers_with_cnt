@@ -11,8 +11,9 @@ using namespace std;
 
 class CNT
 {
-public: int x, y, a, k;
-		CNT(int _x, int _y, int _a, int _k)
+public: double x, y, k;
+		int a;
+		CNT(double _x, double _y, int _a, double _k)
 		{
 			x = _x;
 			y = _y;
@@ -36,7 +37,7 @@ public: int x, y, a, k;
 };
 class Square
 {
-public: int x1, x2, y1, y2;
+public: double x1, x2, y1, y2;
 		double weight;
 
 		Square(int _x1, int _x2, int _y1, int _y2, double _weight)
@@ -67,14 +68,14 @@ public: int x1, x2, y1, y2;
 
 //************************************************************************
 int L, mean, devi, kol_square;
-int n, N;
+int n, N, nn;
 CNT *location;
 CNT *transference;
 Square *sq;
-ofstream file("coordinates.txt"), raspr("rasp.txt");
-//ofstream aa("a.txt"), kk("k.txt");
+ofstream file("coordinates.txt"), raspr("rasp.txt"), aa("a.txt");
+//ofstream kk("k.txt");
 bool flag;
-
+int *mass_a;
 MtRng64 mt;
 bool ready = false;
 double second = 0.0;
@@ -105,19 +106,19 @@ bool parall(double a1, double a2, double b1, double b2)
 	return (a1*b2 == a2*b1); //true - пр€мые параллельны
 }
 
-void intersect(int a1, int a2, int b1, int b2, int c1, int c2, int& x, int& y) //точка пересечени€ пр€мых
+void intersect(double a1, double a2, double b1, double b2, double c1, double c2, double& x, double& y) //точка пересечени€ пр€мых
 {
-	x = (int)(b1 * c2 - b2 * c1) / (a1 * b2 - a2 * b1);
-	y = (int)(a2 * c1 - a1 * c2) / (a1 * b2 - a2 * b1);
+	x = (b1 * c2 - b2 * c1) / (a1 * b2 - a2 * b1);
+	y = (a2 * c1 - a1 * c2) / (a1 * b2 - a2 * b1);
 }
 
-void coordinates(int x1, int y1, int k, int a, int &x2, int &y2)
+void coordinates(double x1, double y1, double k, int a, double &x2, double &y2)
 {
 	x2 = x1 + k*cos(a);
 	y2 = y1 + k*sin(a);
 }
 
-void draw(int x1, int y1, int x2, int y2, int k, int a, HDC hDC)
+void draw(double x1, double y1, double x2, double y2, double k, int a, HDC hDC)
 {
 	MoveToEx(hDC, x1 + 10, y1 + 100, NULL);
 	LineTo(hDC, x2 + 10, y2 + 100);
@@ -130,9 +131,9 @@ void draw(int x1, int y1, int x2, int y2, int k, int a, HDC hDC)
 	if (y2 > L) draw(x1, y1 - L, x2, y2 - L, k, a, hDC);
 }
 
-void draw_CNT(int x, int y, int k, int a)
+void draw_CNT(double x, double y, double k, int a)
 {
-	int x2 = 0, y2 = 0;
+	double x2 = 0, y2 = 0;
 	coordinates(x, y, k, a, x2, y2);
 	HDC hDC = GetDC(GetConsoleWindow());
 	HPEN Pen = CreatePen(PS_SOLID, 2, RGB(255, 255, 255));
@@ -145,44 +146,26 @@ void draw_CNT(int x, int y, int k, int a)
 	MoveToEx(hDC, x + 10, y + 100, NULL);
 	LineTo(hDC, x2 + 10, y2 + 100);
 }
-bool belonging(int x1, int y1, int x2, int y2, int x, int y) //true - точка (x,y) лежит на отрезке
+double d(double x1, double y1, double x2, double y2)
 {
-	if (x1 < x2)
-	{
-		if (x >= x1 && x <= x2)
-		{
-			if (y1 < y2)
-				if (y >= y1 && y <= y2) return true;
-				else return false;
-			else if (y <= y1 && y >= y2) return true;
-			else return false;
-		}
-		else return false;
-	}
-	else
-	{
-		if (x >= x2 && x <= x1)
-		{
-			if (y1 < y2)
-				if (y >= y1 && y <= y2) return true;
-				else return false;
-			else if (y <= y1 && y >= y2) return true;
-			else return false;
-		}
-		else return false;
-	}
+	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+}
+bool belonging(double x1, double y1, double x2, double y2, double x, double y) //true - точка (x,y) лежит на отрезке
+{
+	if (d(x1, y1, x, y) + d(x2, y2, x, y) - d(x1, y1, x2, y2) < 0.1) return true;
+	return false;
 }
 
-void equation(int x1, int y1, int x2, int y2, int &a, int &b, int &c)
+void equation(double x1, double y1, double x2, double y2, double &a, double &b, double &c)
 {
 	a = y1 - y2;
 	b = x2 - x1;
 	c = x1 * y2 - x2 * y1;
 }
-bool check(int i, int x1, int y1, int k, int a, CNT *loc)
+bool check(int i, double x1, double y1, double k, int a, CNT *loc)
 {
-	int a1, a2, b1, b2, c1, c2;
-	int x2, y2, x3, y3, x4, y4, x, y;
+	double a1, a2, b1, b2, c1, c2;
+	double x2, y2, x3, y3, x4, y4, x, y;
 	coordinates(x1, y1, k, a, x2, y2); //2 точка провер€емой трубки
 	x3 = loc[i].x;
 	y3 = loc[i].y;
@@ -196,17 +179,26 @@ bool check(int i, int x1, int y1, int k, int a, CNT *loc)
 	}
 	return true;
 }
-bool all_test(int x1, int y1, int k, int a) //true - удачное расположение
+
+bool all_test(double x1, double y1, double k, int a) //true - удачное расположение
 {
-	for (int i = 0; i < n; i++) if (!check(i, x1, y1, k, a, location)) return false;
-	for (int i = 0; i < n / 4; i++) if (transference[i].k != 0 && !check(i, x1, y1, k, a, transference)) return false;
+	for (int i = 0; i < n; i++)
+	{
+		if (k + location[i].k < d(x1, y1, location[i].x, location[i].y)) continue;
+		if (!check(i, x1, y1, k, a, location)) return false;
+	}
+	for (int i = 0; i < n / 4; i++)
+	{
+		if (k + transference[i].k < d(x1, y1, transference[i].x, transference[i].y)) continue;
+		if (transference[i].k != 0 && !check(i, x1, y1, k, a, transference)) return false;
+	}
 	return true;
 }
 
-bool test(int x1, int y1, int a, int k) //true - удачное расположение
+bool test(double x1, double y1, int a, double k) //true - удачное расположение
 {
 
-	int x2, y2;
+	double x2, y2;
 	coordinates(x1, y1, k, a, x2, y2); //2 точка провер€емой трубки
 
 	if (x2 < 0) if (!all_test(x1 + L, y1, k, a)) return false;
@@ -250,22 +242,27 @@ string toStr(int number)
 
 void packaging()
 {
-	int x, y, k, a, kol = 0;
+	double x, y, k;
+	int a, kol = 0;
 	for (int i = 0; i < n; i++)
 	{
 		flag = false;
 		kol = 0;
-		k = (int)bm();
+		k = bm();
 		
 		a = (int)(mt.getReal1() * 360);
 		do
 		{
 			if (kol <= L*L)
 			{
-				x = (int)(mt.getReal1()*L);
-				y = (int)(mt.getReal1()*L);
+				x = mt.getReal1()*L;
+				y = mt.getReal1()*L;
 			}
-			else break;
+			else
+			{
+				n--;
+				break;
+			}
 			kol++;
 		} while (!test(x, y, a, k));
 
@@ -274,6 +271,7 @@ void packaging()
 			location[i] = CNT(x, y, a, k);
 			draw_CNT(x, y, k, a);
 			file << setw(7) << x << "|" << setw(7) << y << "|" << setw(7) << k << "|" << endl;
+			mass_a[i] += a;
 			
 		}
 	}
@@ -281,7 +279,7 @@ void packaging()
 
 int num_intervals()
 {
-	int m = pow(2.0 * n / 3.0, 1.0 / 6.0);
+	int m = pow(2.0 * nn / 3.0, 1.0 / 6.0);
 	return pow(m + 1, 2);
 }
 
@@ -303,38 +301,35 @@ void square(int kol)
 	}
 
 }
-int S(int x, int y) //номер квадрата, которому принадлежит координата
+int S(double x, double y) //номер квадрата, которому принадлежит координата
 {
 	int k = 0;
-	if (x < 0) x += L;
-	if (x > L) x -= L;
-	if (y < 0) y += L;
-	if (y > L) y -= L;
+	if (x < (double)0) x = x + L;
+	if (x > (double)L) x = x - L;
+	if (y < (double)0) y = y + L;
+	if (y > (double)L) y = y - L;
 
 	for (int i = 0; i < kol_square*kol_square; i++)
 		if (sq[i].x1 <= x && sq[i].x2 >= x && sq[i].y1 <= y && sq[i].y2 >= y) k = i;
 
 	return k;
 }
-int d(int x1, int y1, int x2, int y2)
-{
-	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
-}
 
-void count(int &x_gran, int &y_gran, int k, int x1, int x2, int y1, int y2, int a2, int b2, int c2)
+
+void count(double &x_gran, double &y_gran, int k, double x1, double x2, double y1, double y2, double a2, double b2, double c2)
 {
-	int a1, b1, c1;
+	double a1, b1, c1;
 	equation(x1, y1, x2, y2, a1, b1, c1);
 	intersect(a1, a2, b1, b2, c1, c2, x_gran, y_gran); //точка пересечени€ границы
 	sq[k].weight += d(x_gran, y_gran, x1, y1);
 }
 
-int summ_weight(int k, int x1, int y1, int x2, int y2)
+double summ_weight(int k, double x1, double y1, double x2, double y2)
 {
 	if (k == S(x2, y2)) sq[k].weight += d(x1, y1, x2, y2); // если находитс€ в одном квадрате
 	else
 	{
-		int x_gran, y_gran;
+		double x_gran, y_gran;
 
 		if (x2 < sq[k].x1)
 		{
@@ -342,7 +337,7 @@ int summ_weight(int k, int x1, int y1, int x2, int y2)
 			if (x2 < 0)
 				summ_weight(S(x_gran + L - 1, y_gran), x_gran + L - 1, y_gran, x2 + L - 1, y2);
 			else
-				summ_weight(S(x_gran - 1, y_gran), x_gran - 1, y_gran, x2, y2);
+				summ_weight(S(x_gran - 1, y_gran), x_gran - 1, y_gran, x2 - 1, y2);
 			return 0;
 		}
 
@@ -352,7 +347,7 @@ int summ_weight(int k, int x1, int y1, int x2, int y2)
 			if (x2 > L)
 				summ_weight(S(x_gran - L + 1, y_gran), x_gran - L + 1, y_gran, x2 - L + 1, y2);
 			else
-				summ_weight(S(x_gran + 1, y_gran), x_gran + 1, y_gran, x2, y2);
+				summ_weight(S(x_gran + 1, y_gran), x_gran + 1, y_gran, x2 + 1, y2);
 			return 0;
 		}
 		if (y2 < sq[k].y1)
@@ -369,9 +364,9 @@ int summ_weight(int k, int x1, int y1, int x2, int y2)
 		{
 			count(x_gran, y_gran, k, x1, x2, y1, y2, 0, -1, sq[k].y2);
 			if (y2 >= L)
-				summ_weight(S(x_gran, y_gran - L + 1), x_gran, y_gran - L, x2, y2 - L);
+				summ_weight(S(x_gran, y_gran - L + 1), x_gran, y_gran - L + 1, x2, y2 - L + 1);
 			else
-				summ_weight(S(x_gran, y_gran), x_gran, y_gran, x2, y2);
+				summ_weight(S(x_gran, y_gran + 1), x_gran, y_gran + 1, x2, y2 + 1);
 			return 0;
 		}
 	}
@@ -381,65 +376,76 @@ void weight()
 {
 	for (int i = 0; i < n; i++)
 	{
-		int x1 = location[i].x;
-		int y1 = location[i].y;
-		int x2, y2;
+		double x1 = location[i].x;
+		double y1 = location[i].y;
+		double x2, y2;
 		coordinates(x1, y1, location[i].k, location[i].a, x2, y2);
 		summ_weight(S(x1, y1), x1, y1, x2, y2);
 	}
 }
 void main()
 {
-	
 	setlocale(LC_ALL, "rus");
 	cout << "–азмер квадрата: ";
 	cin >> L;
 	cout << "—редн€€ длина трубки: ";
 	cin >> mean;
 	cout << " оличество трубок: ";
-	cin >> n;
+	cin >> nn;
 	cout << " оличество испытаний: ";
 	cin >> N;
 
 	file << "–азмер квадрата: " << L << endl;
 	file << "—редн€€ длина трубки: " << mean << endl;
-	file << " оличество трубок: " << n << endl;
+	file << " оличество трубок: " << nn << endl;
 	file << " оличество испытаний: " << N << endl;
-
 	GraphInConsole();
-	devi = (int)mean / 10;
+	devi = mean / 10;
 	kol_square = sqrt(num_intervals());
 	double*average = new double[kol_square*kol_square];
 	for (int i = 0; i < kol_square*kol_square; i++)
 		average[i] = 0;
+	mass_a = new int[nn]();
+	int *mass_ad = new int[nn]();
+	
 	sq = new Square[kol_square*kol_square];
 	square(kol_square);
 	for (int i = 0; i < N; i++)
 	{
+		n = nn;
 		//aa << "***************************" << endl << i+1 << endl << "***************************" << endl;
 		file << "***************************" << endl <<"»спытание "<< i+1 << endl << "***************************" << endl;
 		file << setw(7) << "x" << "|" << setw(7) << "y" << "|" << setw(7) << "k" << "|" << endl;
-		location = new CNT[n];
-		transference = new CNT[n / 4];
+		location = new CNT[n]();
+		transference = new CNT[n / 4]();
 		packaging();
 		weight();
 		for (int j = 0; j < kol_square*kol_square; j++)
 		{
 			average[j] = average[j] + sq[j].weight;
-			raspr << sq[j].weight << " ";
+			//raspr << sq[j].weight << " ";
 			sq[j].weight = 0;
 		}
 		raspr << endl;
 		delete[]location;
 		delete[]transference;
 		//cout << i << endl;	
+		//aa << endl << endl << endl << endl << endl << endl;
+
 	}
 
 	for (int i = 0; i < kol_square*kol_square; i++)
 		raspr << endl << (average[i] / N);
-	cout << "meow!";
+
+
+
+	for (int i = 0; i < nn; i++)
+		aa << endl << ((double)mass_a[i] / (double)N);
+	//cout << "meow!";
+	cin >> n;
 	delete[]sq;
-	//aa.close(); 
+	delete []mass_a;
+	aa.close(); 
 	//kk.close();
 	file.close();
 	raspr.close();
