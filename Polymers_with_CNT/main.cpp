@@ -67,7 +67,8 @@ public: double x1, x2, y1, y2;
 };
 
 //************************************************************************
-int L, mean, devi, kol_square;
+int L, kol_square;
+double mean, devi;
 int n, N, nn;
 CNT *location;
 CNT *transference;
@@ -275,7 +276,8 @@ void packaging()
 		flag = false;
 		kol = 0;
 		k = bm();
-		
+		while (k < mean - devi || k > mean + devi)
+			k = bm();
 		a = (int)(mt.getReal1() * 360);
 		do
 		{
@@ -426,7 +428,7 @@ void main()
 	file << "Количество трубок: " << nn << endl;
 	file << "Количество испытаний: " << N << endl;
 	GraphInConsole();
-	devi = mean / 10;
+	devi = mean * 0.1;
 	kol_square = sqrt(num_intervals());
 	double*average = new double[kol_square*kol_square];
 	for (int i = 0; i < kol_square*kol_square; i++)
