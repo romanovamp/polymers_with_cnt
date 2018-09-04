@@ -76,6 +76,7 @@ ofstream file("coordinates.txt"), raspr("rasp.txt"), aa("a.txt");
 //ofstream kk("k.txt");
 bool flag;
 int *mass_a;
+int *mass_inter;
 MtRng64 mt;
 bool ready = false;
 double second = 0.0;
@@ -239,7 +240,32 @@ string toStr(int number)
 	ss << number;
 	return ss.str();
 }
-
+void interval()
+{
+	int *a = new int[9]();
+	for (int i = 0; i < 9; i++)
+		a[i] = 0;
+	for (int i = 0; i < n; i++)
+	{
+		if (location[i].a >= 0 && location[i].a <= 40) a[0] += 1;
+		if (location[i].a >= 41 && location[i].a <= 80) a[1] += 1;
+		if (location[i].a >= 81 && location[i].a <= 120) a[2] += 1;
+		if (location[i].a >= 121 && location[i].a <= 160) a[3] += 1;
+		if (location[i].a >= 161 && location[i].a <= 200) a[4] += 1;
+		if (location[i].a >= 201 && location[i].a <= 240) a[5] += 1;
+		if (location[i].a >= 241 && location[i].a <= 280) a[6] += 1;
+		if (location[i].a >= 281 && location[i].a <= 320) a[7] += 1;
+		if (location[i].a >= 321 && location[i].a <= 360) a[8] += 1;
+	}
+	//aa << endl;
+	for (int i = 0; i < 9; i++)
+	{
+		//aa << a[i] << endl;
+		mass_inter[i] += a[i];
+	}
+	//aa << endl;
+	delete[]a;
+}
 void packaging()
 {
 	double x, y, k;
@@ -271,8 +297,8 @@ void packaging()
 			location[i] = CNT(x, y, a, k);
 			draw_CNT(x, y, k, a);
 			file << setw(7) << x << "|" << setw(7) << y << "|" << setw(7) << k << "|" << endl;
-			mass_a[i] += a;
-			
+			mass_a[i] = a;
+			//aa << a << endl;
 		}
 	}
 }
@@ -406,8 +432,7 @@ void main()
 	for (int i = 0; i < kol_square*kol_square; i++)
 		average[i] = 0;
 	mass_a = new int[nn]();
-	int *mass_ad = new int[nn]();
-	
+	mass_inter = new int[9]();
 	sq = new Square[kol_square*kol_square];
 	square(kol_square);
 	for (int i = 0; i < N; i++)
@@ -426,10 +451,11 @@ void main()
 			//raspr << sq[j].weight << " ";
 			sq[j].weight = 0;
 		}
+		interval();
 		raspr << endl;
 		delete[]location;
 		delete[]transference;
-		//cout << i << endl;	
+		cout << i << "*";	
 		//aa << endl << endl << endl << endl << endl << endl;
 
 	}
@@ -437,14 +463,15 @@ void main()
 	for (int i = 0; i < kol_square*kol_square; i++)
 		raspr << endl << (average[i] / N);
 
+	aa << endl;
 
-
-	for (int i = 0; i < nn; i++)
-		aa << endl << ((double)mass_a[i] / (double)N);
+	for (int i = 0; i < 9; i++)
+		aa << ((double)mass_inter[i] / (double)N) << endl;
 	//cout << "meow!";
 	cin >> n;
 	delete[]sq;
 	delete []mass_a;
+	delete[]mass_inter;
 	aa.close(); 
 	//kk.close();
 	file.close();
