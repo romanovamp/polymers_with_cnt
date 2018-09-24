@@ -454,7 +454,6 @@ void main()
 			sq[j].weight = 0;
 		}
 		interval();
-		raspr << endl;
 		delete[]location;
 		delete[]transference;
 		cout << i << "*";	
@@ -463,7 +462,8 @@ void main()
 	}
 
 	for (int i = 0; i < kol_square*kol_square; i++)
-		raspr << endl << (average[i] / N);
+		raspr << (average[i] / N) << endl;
+	
 
 	aa << endl;
 
